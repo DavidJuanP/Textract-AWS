@@ -24,7 +24,4 @@ jobs:
         run: |
           aws s3api create-bucket --bucket my-unique-bucket-name --region us-east-1 --create-bucket-configuration LocationConstraint=us-east-1 || echo "Bucket already exists"
 
-      - name: Sync files to S3
-        run: |
-          aws s3 sync ./public s3://my-unique-bucket-name
 
