@@ -118,7 +118,6 @@ Resources:
       Timeout: 60
       MemorySize: 512
 
-  # 6️⃣ S3 Bucket
   MiBucketS3:
     Type: AWS::S3::Bucket
     Properties:
@@ -130,31 +129,22 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Queue: !GetAtt MiColaSQS.Arn
 
-  # 7️⃣ S3 Bucket Notification (separado para evitar EarlyValidation)
-  S3BucketNotification:
-    Type: AWS::S3::BucketNotification
-    DependsOn:
-      - MiBucketS3
-      - MiColaSQS
-      - S3SQSPolicy
-    Properties:
-      Bucket: !Ref MiBucketS3
-      QueueConfigurations:
-        - Event: s3:ObjectCreated:*
-          Queue: !GetAtt MiColaSQS.Arn
-
-  # 8️⃣ Lambda Event Source Mapping (SQS -> Lambda)
-  LambdaSQSTrigger:
-    Type: AWS::Lambda::EventSourceMapping
-    DependsOn:
-      - MiLambdaTextract
-      - MiColaSQS
-    Properties:
-      EventSourceArn: !GetAtt MiColaSQS.Arn
-      FunctionName: !GetAtt MiLambdaTextract.Arn
-      BatchSize: 1
-      Enabled: true
+    # 8️⃣ Lambda Event Source Mapping (SQS -> Lambda)
+    LambdaSQSTrigger:
+      Type: AWS::Lambda::EventSourceMapping
+      DependsOn:
+        - MiLambdaTextract
+        - MiColaSQS
+      Properties:
+        EventSourceArn: !GetAtt MiColaSQS.Arn
+        FunctionName: !GetAtt MiLambdaTextract.Arn
+        BatchSize: 1
+        Enabled: true
 
 Outputs:
   BucketName:
