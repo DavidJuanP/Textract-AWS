@@ -30,7 +30,7 @@ jobs:
       - name: Deploy CloudFormation stack
         run: |
           STACK_NAME=MiBucketS3Stack
-          TEMPLATE_FILE=template-s3.yaml
+          TEMPLATE_FILE=main.yaml
 
           echo "Desplegando stack $STACK_NAME..."
           aws cloudformation deploy \
