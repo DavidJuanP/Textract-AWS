@@ -1,4 +1,4 @@
-# .github/workflows/deploy-bucket.yml
+# .github/workflows/deploy.yml
 name: Deploy S3 Bucket
 
 on:
