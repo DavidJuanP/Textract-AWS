@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Infra completa
+
+Resources:
+  MiBucketS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mi-bucket-${AWS::AccountId}-${AWS::Region}"
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
