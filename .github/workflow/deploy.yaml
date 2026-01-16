@@ -1,0 +1,30 @@
+# .github/workflows/deploy-bucket.yml
+name: Deploy S3 Bucket
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Cambia la región si lo necesitas
+
+      - name: Create S3 Bucket
+        run: |
+          aws s3api create-bucket --bucket my-unique-bucket-name --region us-east-1 --create-bucket-configuration LocationConstraint=us-east-1 || echo "Bucket already exists"
+
+      - name: Sync files to S3
+        run: |
+          aws s3 sync ./public s3://my-unique-bucket-name --acl public-read
+
