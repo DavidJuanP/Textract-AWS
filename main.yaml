@@ -12,11 +12,11 @@ Resources:
     Properties:
       QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
       VisibilityTimeout: 60
-      
+
   MiBucketS3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "textract-bucket-${AWS::AccountId}-${AWS::Region}"
+      BucketName: !Sub "textract-bucket-${AWS::AccountId}-${AWS::Region}kffdwhusajlsbfcujsvn"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
