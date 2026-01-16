@@ -22,19 +22,3 @@ Resources:
       QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
       VisibilityTimeout: 60
 
-  # 2️⃣ Permisos para que S3 pueda enviar mensajes a SQS
-  S3SQSPolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref MiColaSQS
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal: "*"
-            Action: sqs:SendMessage
-            Resource: !GetAtt MiColaSQS.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !GetAtt MiBucketS3.Arn  # Se resuelve con DependsOn abajo
