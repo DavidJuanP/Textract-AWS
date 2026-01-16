@@ -1,12 +1,19 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Bucket S3 con nombre dinámico y versionado
+Description: >
+  Stack completo:
+  S3 -> SQS -> Lambda -> Textract -> DynamoDB
 
 Resources:
+
+  # 1️⃣ S3 Bucket
   MiBucketS3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "mi-bucket-${AWS::AccountId}-${AWS::Region}"
-      AccessControl: Private
+      BucketName: !Sub "textract-bucket-${AWS::AccountId}-${AWS::Region}"
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt MiColaSQS.Arn
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -15,11 +22,123 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-Outputs:
-  BucketName:
-    Description: "Nombre del bucket S3"
-    Value: !Ref MiBucketS3
+  # 2️⃣ SQS Queue
+  MiColaSQS:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
+      VisibilityTimeout: 60
 
-  BucketArn:
-    Description: "ARN del bucket S3"
-    Value: !GetAtt MiBucketS3.Arn
+  # Permisos para que S3 pueda enviar mensajes a SQS
+  S3SQSPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MiColaSQS
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: sqs:SendMessage
+            Resource: !GetAtt MiColaSQS.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt MiBucketS3.Arn
+
+  # 3️⃣ DynamoDB Table
+  MiTablaDynamoDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "TextractResults-${AWS::AccountId}-${AWS::Region}"
+      AttributeDefinitions:
+        - AttributeName: "FileName"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "FileName"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST
+
+  # 4️⃣ Lambda Function
+  MiLambdaTextract:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "TextractLambda-${AWS::AccountId}-${AWS::Region}"
+      Runtime: python3.11
+      Handler: lambda_function.lambda_handler
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+
+          s3 = boto3.client('s3')
+          textract = boto3.client('textract')
+          dynamodb = boto3.resource('dynamodb')
+          table = dynamodb.Table(os.environ['DDB_TABLE'])
+
+          def lambda_handler(event, context):
+              for record in event['Records']:
+                  bucket = record['s3']['bucket']['name']
+                  key = record['s3']['object']['key']
+
+                  # Llamada a Textract
+                  response = textract.detect_document_text(
+                      Document={'S3Object': {'Bucket': bucket, 'Name': key}}
+                  )
+                  text = ""
+                  for item in response.get('Blocks', []):
+                      if item['BlockType'] == 'LINE':
+                          text += item['Text'] + "\n"
+
+                  # Guardar en DynamoDB
+                  table.put_item(Item={'FileName': key, 'ExtractedText': text})
+
+                  print(f"Processed {key} from {bucket}")
+
+      Environment:
+        Variables:
+          DDB_TABLE: !Ref MiTablaDynamoDB
+      Timeout: 60
+      MemorySize: 512
+
+  # 5️⃣ Lambda Event Source Mapping (SQS -> Lambda)
+  LambdaSQSTrigger:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt MiColaSQS.Arn
+      FunctionName: !GetAtt MiLambdaTextract.Arn
+      BatchSize: 1
+      Enabled: true
+
+  # 6️⃣ IAM Role for Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "TextractLambdaRole-${AWS::AccountId}-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: TextractDynamoS3Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub "${MiBucketS3.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - textract:DetectDocumentText
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt MiTablaDynamoDB.Arn

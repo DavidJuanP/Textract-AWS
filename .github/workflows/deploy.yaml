@@ -29,7 +29,7 @@ jobs:
 
       - name: Deploy CloudFormation stack
         run: |
-          STACK_NAME=MiBucketS3Stack
+          STACK_NAME=Infrestructura
           TEMPLATE_FILE=main.yaml
 
           echo "Desplegando stack $STACK_NAME..."
@@ -39,12 +39,3 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset \
             --region us-east-1
-
-      - name: Show Stack Outputs
-        run: |
-          STACK_NAME=MiBucketS3Stack
-          echo "Outputs del stack:"
-          aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs" \
-            --output table
