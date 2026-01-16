@@ -28,13 +28,13 @@ jobs:
         run: |
           echo "Validando template..."
           aws cloudformation validate-template \
-            --template-body file://template-full.yaml
+            --template-body file://main.yaml
 
       # 4️⃣ Desplegar el stack
       - name: Deploy CloudFormation stack
         run: |
           STACK_NAME=Infraestructura
-          TEMPLATE_FILE=template-full.yaml
+          TEMPLATE_FILE=main.yaml
 
           echo "Desplegando stack $STACK_NAME..."
           aws cloudformation deploy \
