@@ -135,16 +135,14 @@ Resources:
             Queue: !GetAtt MiColaSQS.Arn
 
     # 8️⃣ Lambda Event Source Mapping (SQS -> Lambda)
-    LambdaSQSTrigger:
-      Type: AWS::Lambda::EventSourceMapping
-      DependsOn:
-        - MiLambdaTextract
-        - MiColaSQS
-      Properties:
-        EventSourceArn: !GetAtt MiColaSQS.Arn
-        FunctionName: !GetAtt MiLambdaTextract.Arn
-        BatchSize: 1
-        Enabled: true
+  LambdaSQSTrigger:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt MiColaSQS.Arn
+      FunctionName: !Ref MiLambdaTextract   # ¡CORRECTO!
+      BatchSize: 1
+      Enabled: true
+
 
 Outputs:
   BucketName:
