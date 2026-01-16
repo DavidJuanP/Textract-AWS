@@ -1,5 +1,5 @@
-# .github/workflows/deploy.yml
-name: Deploy S3 Bucket
+# .github/workflows/deploy.yaml
+name: Deploy S3 Bucket prueba
 
 on:
   push:
