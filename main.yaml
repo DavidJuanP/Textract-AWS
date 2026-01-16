@@ -12,10 +12,29 @@ Resources:
     Properties:
       QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
       VisibilityTimeout: 60
+      
+  MiBucketS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "textract-bucket-${AWS::AccountId}-${AWS::Region}"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Queue: !GetAtt MiColaSQS.Arn
 
   # 2️⃣ Permisos para que S3 pueda enviar mensajes a SQS
   S3SQSPolicy:
     Type: AWS::SQS::QueuePolicy
+    DependsOn:
+      - MiBucketS3
+      - MiColaSQS
     Properties:
       Queues:
         - !Ref MiColaSQS
@@ -28,7 +47,8 @@ Resources:
             Resource: !GetAtt MiColaSQS.Arn
             Condition:
               ArnEquals:
-                aws:SourceArn: !GetAtt MiBucketS3.Arn  # Se resuelve con DependsOn abajo
+                aws:SourceArn: !GetAtt MiBucketS3.Arn
+
 
   # 3️⃣ DynamoDB Table
   MiTablaDynamoDB:
@@ -117,22 +137,6 @@ Resources:
           DDB_TABLE: !Ref MiTablaDynamoDB
       Timeout: 60
       MemorySize: 512
-
-  MiBucketS3:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "textract-bucket-${AWS::AccountId}-${AWS::Region}"
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      NotificationConfiguration:
-        QueueConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Queue: !GetAtt MiColaSQS.Arn
 
   LambdaSQSTrigger:
     Type: AWS::Lambda::EventSourceMapping
