@@ -26,5 +26,5 @@ jobs:
 
       - name: Sync files to S3
         run: |
-          aws s3 sync ./public s3://my-unique-bucket-name --acl public-read
+          aws s3 sync ./public s3://my-unique-bucket-name
 
