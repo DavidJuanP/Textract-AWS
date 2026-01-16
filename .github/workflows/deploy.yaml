@@ -47,7 +47,7 @@ jobs:
       # 5️⃣ Mostrar los outputs del stack
       - name: Show Stack Outputs
         run: |
-          STACK_NAME=Infraestructura
+          STACK_NAME=Nueva Infraestructura
           echo "Outputs del stack:"
           aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
