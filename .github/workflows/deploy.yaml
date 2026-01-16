@@ -33,7 +33,7 @@ jobs:
       # 4️⃣ Desplegar el stack
       - name: Deploy CloudFormation stack
         run: |
-          STACK_NAME=Infraestructura
+          STACK_NAME=Nueva Infraestructura
           TEMPLATE_FILE=main.yaml
 
           echo "Desplegando stack $STACK_NAME..."
