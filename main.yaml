@@ -21,14 +21,6 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
-  # 2️⃣ SQS Queue
-  MiColaSQS:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
-      VisibilityTimeout: 60
-
   # Permisos para que S3 pueda enviar mensajes a SQS
   S3SQSPolicy:
     Type: AWS::SQS::QueuePolicy
@@ -45,6 +37,13 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !GetAtt MiBucketS3.Arn
+
+  # 2️⃣ SQS Queue
+  MiColaSQS:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
+      VisibilityTimeout: 60
 
   # 3️⃣ DynamoDB Table
   MiTablaDynamoDB:
