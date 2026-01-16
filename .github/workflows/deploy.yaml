@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main  # Se ejecuta al hacer push en main
-  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
 
 jobs:
   deploy:
@@ -31,12 +30,4 @@ jobs:
             --template-file $TEMPLATE_FILE \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
-
-      - name: Output stack info
-        run: |
-          STACK_NAME=MiBucketS3Stack
-          aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs" \
-            --output table
 

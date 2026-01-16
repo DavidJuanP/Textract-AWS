@@ -7,7 +7,7 @@ Resources:
   MiBucketS3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: mi-bucket-ejemplo-12345  # Cambia esto a un nombre único
+      BucketName: mi-bucket-ejemplo
       AccessControl: Private
       VersioningConfiguration:
         Status: Enabled
