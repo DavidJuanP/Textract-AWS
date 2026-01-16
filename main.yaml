@@ -1,13 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
-  CloudFormation template para crear un bucket S3 con configuración básica
-  de seguridad y versionado.
+Description: Bucket S3 con nombre dinámico y versionado
 
 Resources:
   MiBucketS3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: mi-bucket-ejemplo
+      BucketName: !Sub "mi-bucket-${AWS::AccountId}-${AWS::Region}"
       AccessControl: Private
       VersioningConfiguration:
         Status: Enabled
@@ -16,8 +14,12 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      Tags:
-        - Key: Environment
-          Value: Dev
-        - Key: Project
-          Value: MiProyecto
+
+Outputs:
+  BucketName:
+    Description: "Nombre del bucket S3"
+    Value: !Ref MiBucketS3
+
+  BucketArn:
+    Description: "ARN del bucket S3"
+    Value: !GetAtt MiBucketS3.Arn
