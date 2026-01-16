@@ -134,14 +134,14 @@ Resources:
           - Event: "s3:ObjectCreated:*"
             Queue: !GetAtt MiColaSQS.Arn
 
-    # 8️⃣ Lambda Event Source Mapping (SQS -> Lambda)
   LambdaSQSTrigger:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       EventSourceArn: !GetAtt MiColaSQS.Arn
-      FunctionName: !Ref MiLambdaTextract   # ¡CORRECTO!
+      FunctionName: !Ref MiLambdaTextract
       BatchSize: 1
       Enabled: true
+
 
 
 Outputs:
