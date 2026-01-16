@@ -14,11 +14,3 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
-  # 1️⃣ SQS Queue
-  MiColaSQS:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "textract-queue-${AWS::AccountId}-${AWS::Region}"
-      VisibilityTimeout: 60
-
