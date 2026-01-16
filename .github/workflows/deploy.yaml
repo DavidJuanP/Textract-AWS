@@ -33,7 +33,7 @@ jobs:
       # 4️⃣ Desplegar el stack
       - name: Deploy CloudFormation stack
         run: |
-          STACK_NAME=Nueva_Infraestructura
+          STACK_NAME=NuevaInfraestructura
           TEMPLATE_FILE=main.yaml
 
           echo "Desplegando stack $STACK_NAME..."
@@ -47,7 +47,7 @@ jobs:
       # 5️⃣ Mostrar los outputs del stack
       - name: Show Stack Outputs
         run: |
-          STACK_NAME=Nueva_Infraestructura
+          STACK_NAME=NuevaInfraestructura
           echo "Outputs del stack:"
           aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
