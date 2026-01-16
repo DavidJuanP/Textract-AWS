@@ -1,16 +1,17 @@
-# .github/workflows/deploy.yaml
-name: Deploy S3 Bucket prueba
+name: Deploy S3 Bucket
 
 on:
   push:
     branches:
-      - main
+      - main  # Se ejecuta al hacer push en main
+  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
@@ -18,10 +19,24 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Cambia la región si lo necesitas
+          aws-region: us-east-1
 
-      - name: Create S3 Bucket
+      - name: Deploy CloudFormation stack
         run: |
-          aws s3api create-bucket --bucket my-unique-bucket-name --region us-east-1 --create-bucket-configuration LocationConstraint=us-east-1 || echo "Bucket already exists"
+          STACK_NAME=MiBucketS3Stack
+          TEMPLATE_FILE=main.yaml
 
+          aws cloudformation deploy \
+            --stack-name $STACK_NAME \
+            --template-file $TEMPLATE_FILE \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Output stack info
+        run: |
+          STACK_NAME=MiBucketS3Stack
+          aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs" \
+            --output table
 
